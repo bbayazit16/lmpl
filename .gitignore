@@ -1,3 +1,9 @@
 .env
-logs-*
+logs-hs-to-coq
+logs-verdi
+hs-to-coq
 *-logs
+*-sim
+base
+__pycache__
+.vscode

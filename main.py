@@ -8,6 +8,7 @@ from eval import estimate_eval_input_tokens, estimate_eval_output_tokens, eval_c
 from coqobject import CoqObject, build_coq_objects, pretty_print
 import sys
 import os
+from llm import count_tokens
 
 from models import DefaultLLM, OpenAIReasoning, LLM
 
@@ -101,6 +102,27 @@ def simulate(
             )
         if count:
             get_all_stats(proofs, project_path, logs_dir, thread_count)
+            mean = sum(
+                count_tokens(obj.llm_prompt(
+                    no_dependencies=no_dependencies,
+                    no_lines_before=no_lines_before
+                )) for obj in proofs) / len(proofs) if proofs else 0
+            print(f'Mean LLM prompt token count: {mean:_}')
+
+            median = sorted(
+                count_tokens(obj.llm_prompt(
+                    no_dependencies=no_dependencies,
+                    no_lines_before=no_lines_before
+                )) for obj in proofs)[len(proofs) // 2] if proofs else 0
+            
+            print(f'Median LLM prompt token count: {median:_}')
+            max_amt = max(
+                count_tokens(obj.llm_prompt(
+                    no_dependencies=no_dependencies,
+                    no_lines_before=no_lines_before
+                )) for obj in proofs) if proofs else 0
+            
+            print(f'Max LLM prompt token count: {max_amt:_}')
 
         print(
             f'Total input token count estimate: {estimate_eval_input_tokens(
@@ -241,7 +263,6 @@ def main():
         action='store_true',
         help='Counts the number of tactics for each LLM proof. Requires the responses to exist already (default: false).'
     )
-
 
     args = parser.parse_args()
     project: Path = args.project_path.resolve()
